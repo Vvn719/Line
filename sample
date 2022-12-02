@@ -1,0 +1,149 @@
+// import 'dotenv/config'
+// import linebot from 'linebot'
+// import axios from 'axios'
+// import flex from './flex.js'
+
+// const bot = linebot({
+//   channelId: process.env.CHANNEL_ID,
+//   channelSecret: process.env.CHANNEL_SECRET,
+//   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN
+// })
+
+bot.on('message', async (event) => {
+  if (event.message.type === 'text') {
+    try {
+      const { data } = await axios.get('https://cloud.culture.tw/frontsite/trans/SearchShowAction.do?method=doFindTypeJ&category=6')
+      const exhibition = data.find(exhibition => {
+        return exhibition.showUnit === event.message.text
+      })
+      if (exhibition) {
+        const replyFlex = JSON.parse(JSON.stringify(flex))
+        replyFlex.body.contents[0].text = exhibition.title
+        replyFlex.body.contents.push({
+          type: 'box',
+          layout: 'vertical',
+          margin: 'lg',
+          spacing: 'sm',
+          contents: [
+            {
+              type: 'box',
+              layout: 'baseline',
+              spacing: 'sm',
+              contents: [
+                {
+                  type: 'text',
+                  text: '地點',
+                  color: '#aaaaaa',
+                  size: 'sm',
+                  flex: 1
+                },
+                {
+                  type: 'text',
+                  text: exhibition.showUnit,
+                  wrap: true,
+                  color: '#666666',
+                  size: 'sm',
+                  flex: 5
+                }
+              ]
+            },
+            {
+              type: 'box',
+              layout: 'baseline',
+              spacing: 'sm',
+              contents: [
+                {
+                  type: 'text',
+                  text: 'Start',
+                  color: '#aaaaaa',
+                  size: 'sm',
+                  flex: 1
+                },
+                {
+                  type: 'text',
+                  text: exhibition.startDate,
+                  wrap: true,
+                  color: '#666666',
+                  size: 'sm',
+                  flex: 5
+                }
+              ]
+            },
+            {
+              type: 'box',
+              layout: 'baseline',
+              spacing: 'sm',
+              contents: [
+                {
+                  type: 'text',
+                  text: 'End',
+                  color: '#aaaaaa',
+                  size: 'sm',
+                  flex: 1
+                },
+                {
+                  type: 'text',
+                  text: exhibition.endDate,
+                  wrap: true,
+                  color: '#666666',
+                  size: 'sm',
+                  flex: 5
+                }
+              ]
+            },
+            {
+              type: 'box',
+              layout: 'baseline',
+              spacing: 'sm',
+              contents: [
+                {
+                  type: 'text',
+                  text: '說明',
+                  color: '#aaaaaa',
+                  size: 'sm',
+                  flex: 1
+                },
+                {
+                  type: 'text',
+                  text: exhibition.descriptionFilterHtml,
+                  wrap: true,
+                  color: '#666666',
+                  size: 'sm',
+                  flex: 5
+                }
+              ]
+            }
+          ]
+        })
+        replyFlex.footer.contents[0].action.uri = exhibition.sourceWebPromote
+        event.reply({
+          // 設定回應訊息的種類是 flex
+          type: 'flex',
+          // 顯示在 Line 通知中的替代文字
+          altText: '查詢結果',
+          // flex 內容
+          contents: {
+            // 設定內容為 carousel 多個 bubble
+            type: 'carousel',
+            // 將回應的 flex 放入陣列
+            contents: [replyFlex]
+          }
+        })
+      } else {
+        event.reply('找不到餒')
+      }
+    } catch (error) {
+      event.reply('發生錯誤，稍後再試試')
+    }
+  }
+})
+
+// bot.listen('/', process.env.PORT || 3000, () => {
+//   console.log('機器人啟動')
+// })
+
+
+action: {
+  type: 'uri',
+    uri: 'http://linecorp.com/'
+}
